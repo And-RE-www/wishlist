@@ -2,91 +2,229 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Wish List на День Рождения</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Мой Wish List 🎉</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #f5f5f5;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #fdfbfb, #ebedee);
+      margin: 0;
       padding: 2rem;
+      color: #333;
     }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+    }
+
     h1 {
       text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
     }
+
+    form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+
+    input, button {
+      padding: 0.6rem 1rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    input[type="text"], input[type="url"] {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    button {
+      cursor: pointer;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
     ul {
       list-style: none;
       padding: 0;
     }
+
     li {
-      background: white;
+      background: #fff;
+      border: 1px solid #ddd;
       padding: 1rem;
-      margin: 0.5rem 0;
-      border-radius: 0.5rem;
+      margin-bottom: 0.8rem;
+      border-radius: 8px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      transition: all 0.2s ease;
     }
+
     li.done {
       text-decoration: line-through;
-      opacity: 0.6;
+      background: #e0e0e0;
+      opacity: 0.7;
     }
-    button {
+
+    .item-info {
+      max-width: 70%;
+    }
+
+    .item-title {
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+
+    .item-link a {
+      color: #1e88e5;
+      text-decoration: none;
+    }
+
+    .item-link a:hover {
+      text-decoration: underline;
+    }
+
+    .actions button {
       margin-left: 0.5rem;
+      background-color: #eee;
+      color: #444;
     }
-    input[type="text"] {
-      padding: 0.5rem;
-      width: 60%;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+
+    .actions button:hover {
+      background-color: #ccc;
+    }
+
+    @media (max-width: 600px) {
+      form {
+        flex-direction: column;
+      }
+
+      .item-info {
+        max-width: 100%;
+      }
+
+      li {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .actions {
+        margin-top: 0.5rem;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>🎉 Мой Wish List 🎉</h1>
+  <div class="container">
+    <h1>🎁 Мой Wish List</h1>
 
-  <div style="text-align: center; margin-bottom: 1rem;">
-    <input type="text" id="itemInput" placeholder="Добавить желание..." />
-    <button onclick="addItem()">➕</button>
+    <form onsubmit="addWish(event)">
+      <input type="text" id="title" placeholder="Желание (напр. Наушники Sony)" required />
+      <input type="url" id="link" placeholder="Ссылка (необязательно)" />
+      <button type="submit">➕ Добавить</button>
+    </form>
+
+    <ul id="wishlist"></ul>
   </div>
 
-  <ul id="wishlist"></ul>
-
   <script>
-    const wishlist = document.getElementById("wishlist");
-    const input = document.getElementById("itemInput");
+    const wishlistEl = document.getElementById('wishlist');
 
-    function addItem() {
-      const text = input.value.trim();
-      if (!text) return;
-
-      const li = document.createElement("li");
-
-      const span = document.createElement("span");
-      span.textContent = text;
-      li.appendChild(span);
-
-      const actions = document.createElement("div");
-
-      const checkBtn = document.createElement("button");
-      checkBtn.textContent = "✅";
-      checkBtn.onclick = () => li.classList.toggle("done");
-
-      const removeBtn = document.createElement("button");
-      removeBtn.textContent = "❌";
-      removeBtn.onclick = () => li.remove();
-
-      actions.appendChild(checkBtn);
-      actions.appendChild(removeBtn);
-
-      li.appendChild(actions);
-      wishlist.appendChild(li);
-
-      input.value = "";
+    function getWishes() {
+      return JSON.parse(localStorage.getItem('wishlist') || '[]');
     }
 
-    input.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") addItem();
-    });
+    function saveWishes(wishes) {
+      localStorage.setItem('wishlist', JSON.stringify(wishes));
+    }
+
+    function renderWishes() {
+      wishlistEl.innerHTML = '';
+      const wishes = getWishes();
+
+      wishes.forEach((wish, index) => {
+        const li = document.createElement('li');
+        if (wish.done) li.classList.add('done');
+
+        const info = document.createElement('div');
+        info.className = 'item-info';
+
+        const title = document.createElement('div');
+        title.className = 'item-title';
+        title.textContent = wish.title;
+
+        info.appendChild(title);
+
+        if (wish.link) {
+          const link = document.createElement('div');
+          link.className = 'item-link';
+          link.innerHTML = `<a href="${wish.link}" target="_blank">🔗 Перейти по ссылке</a>`;
+          info.appendChild(link);
+        }
+
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+
+        const doneBtn = document.createElement('button');
+        doneBtn.textContent = wish.done ? '↩️ Отменить' : '✅ Готово';
+        doneBtn.onclick = () => toggleDone(index);
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = '❌ Удалить';
+        deleteBtn.onclick = () => deleteWish(index);
+
+        actions.appendChild(doneBtn);
+        actions.appendChild(deleteBtn);
+
+        li.appendChild(info);
+        li.appendChild(actions);
+
+        wishlistEl.appendChild(li);
+      });
+    }
+
+    function addWish(e) {
+      e.preventDefault();
+      const title = document.getElementById('title').value.trim();
+      const link = document.getElementById('link').value.trim();
+
+      const wishes = getWishes();
+      wishes.push({ title, link, done: false });
+      saveWishes(wishes);
+
+      document.getElementById('title').value = '';
+      document.getElementById('link').value = '';
+      renderWishes();
+    }
+
+    function toggleDone(index) {
+      const wishes = getWishes();
+      wishes[index].done = !wishes[index].done;
+      saveWishes(wishes);
+      renderWishes();
+    }
+
+    function deleteWish(index) {
+      const wishes = getWishes();
+      wishes.splice(index, 1);
+      saveWishes(wishes);
+      renderWishes();
+    }
+
+    // Инициализация
+    renderWishes();
   </script>
 </body>
 </html>
