@@ -1,230 +1,133 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Мой Wish List 🎉</title>
+  <title>My Wishlist 🎁</title>
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #fdfbfb, #ebedee);
       margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(145deg, #1f1f1f, #2c2c2c);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       padding: 2rem;
-      color: #333;
-    }
-
-    .container {
-      max-width: 800px;
-      margin: auto;
     }
 
     h1 {
-      text-align: center;
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-    }
-
-    form {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      justify-content: center;
+      font-size: 3rem;
       margin-bottom: 2rem;
+      background: linear-gradient(90deg, #ff7e5f, #feb47b, #ff7e5f);
+      background-size: 200% auto;
+      color: transparent;
+      background-clip: text;
+      -webkit-background-clip: text;
+      animation: shimmer 3s infinite linear;
     }
 
-    input, button {
-      padding: 0.6rem 1rem;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      font-size: 1rem;
-    }
-
-    input[type="text"], input[type="url"] {
-      flex: 1;
-      min-width: 200px;
-    }
-
-    button {
-      cursor: pointer;
-      background-color: #4caf50;
-      color: white;
-      border: none;
-    }
-
-    button:hover {
-      background-color: #45a049;
+    @keyframes shimmer {
+      0% { background-position: 0% center; }
+      100% { background-position: 200% center; }
     }
 
     ul {
       list-style: none;
       padding: 0;
+      max-width: 700px;
+      width: 100%;
     }
 
     li {
-      background: #fff;
-      border: 1px solid #ddd;
-      padding: 1rem;
-      margin-bottom: 0.8rem;
-      border-radius: 8px;
+      background: #2f2f2f;
+      padding: 1.2rem;
+      margin-bottom: 1rem;
+      border-radius: 10px;
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      transition: all 0.2s ease;
     }
 
-    li.done {
-      text-decoration: line-through;
-      background: #e0e0e0;
-      opacity: 0.7;
+    li:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.5);
     }
 
-    .item-info {
-      max-width: 70%;
+    .title {
+      font-size: 1.2rem;
+      font-weight: 600;
     }
 
-    .item-title {
-      font-weight: bold;
-      font-size: 1.1rem;
-    }
-
-    .item-link a {
-      color: #1e88e5;
+    .link a {
+      color: #00d4ff;
       text-decoration: none;
+      font-weight: 500;
     }
 
-    .item-link a:hover {
+    .link a:hover {
       text-decoration: underline;
     }
 
-    .actions button {
-      margin-left: 0.5rem;
-      background-color: #eee;
-      color: #444;
-    }
-
-    .actions button:hover {
-      background-color: #ccc;
-    }
-
     @media (max-width: 600px) {
-      form {
-        flex-direction: column;
-      }
-
-      .item-info {
-        max-width: 100%;
-      }
-
       li {
         flex-direction: column;
         align-items: flex-start;
       }
 
-      .actions {
+      .link {
         margin-top: 0.5rem;
       }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🎁 Мой Wish List</h1>
-
-    <form onsubmit="addWish(event)">
-      <input type="text" id="title" placeholder="Желание (напр. Наушники Sony)" required />
-      <input type="url" id="link" placeholder="Ссылка (необязательно)" />
-      <button type="submit">➕ Добавить</button>
-    </form>
-
-    <ul id="wishlist"></ul>
-  </div>
+  <h1>My Wishlist ✨</h1>
+  <ul id="wishlist">
+    <li>Loading...</li>
+  </ul>
 
   <script>
-    const wishlistEl = document.getElementById('wishlist');
-
-    function getWishes() {
-      return JSON.parse(localStorage.getItem('wishlist') || '[]');
+    async function loadWishlist() {
+      try {
+        const res = await fetch('wishlist.yml');
+        const text = await res.text();
+        const items = jsyaml.load(text);
+        renderList(items);
+      } catch (e) {
+        document.getElementById('wishlist').innerHTML = `<li>Failed to load wishlist</li>`;
+        console.error(e);
+      }
     }
 
-    function saveWishes(wishes) {
-      localStorage.setItem('wishlist', JSON.stringify(wishes));
-    }
+    function renderList(items) {
+      const ul = document.getElementById('wishlist');
+      ul.innerHTML = '';
 
-    function renderWishes() {
-      wishlistEl.innerHTML = '';
-      const wishes = getWishes();
-
-      wishes.forEach((wish, index) => {
+      items.forEach(item => {
         const li = document.createElement('li');
-        if (wish.done) li.classList.add('done');
-
-        const info = document.createElement('div');
-        info.className = 'item-info';
 
         const title = document.createElement('div');
-        title.className = 'item-title';
-        title.textContent = wish.title;
+        title.className = 'title';
+        title.textContent = item.title;
 
-        info.appendChild(title);
+        const link = document.createElement('div');
+        link.className = 'link';
+        link.innerHTML = `<a href="${item.link}" target="_blank">🔗 Open</a>`;
 
-        if (wish.link) {
-          const link = document.createElement('div');
-          link.className = 'item-link';
-          link.innerHTML = `<a href="${wish.link}" target="_blank">🔗 Перейти по ссылке</a>`;
-          info.appendChild(link);
-        }
+        li.appendChild(title);
+        li.appendChild(link);
 
-        const actions = document.createElement('div');
-        actions.className = 'actions';
-
-        const doneBtn = document.createElement('button');
-        doneBtn.textContent = wish.done ? '↩️ Отменить' : '✅ Готово';
-        doneBtn.onclick = () => toggleDone(index);
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.textContent = '❌ Удалить';
-        deleteBtn.onclick = () => deleteWish(index);
-
-        actions.appendChild(doneBtn);
-        actions.appendChild(deleteBtn);
-
-        li.appendChild(info);
-        li.appendChild(actions);
-
-        wishlistEl.appendChild(li);
+        ul.appendChild(li);
       });
     }
 
-    function addWish(e) {
-      e.preventDefault();
-      const title = document.getElementById('title').value.trim();
-      const link = document.getElementById('link').value.trim();
-
-      const wishes = getWishes();
-      wishes.push({ title, link, done: false });
-      saveWishes(wishes);
-
-      document.getElementById('title').value = '';
-      document.getElementById('link').value = '';
-      renderWishes();
-    }
-
-    function toggleDone(index) {
-      const wishes = getWishes();
-      wishes[index].done = !wishes[index].done;
-      saveWishes(wishes);
-      renderWishes();
-    }
-
-    function deleteWish(index) {
-      const wishes = getWishes();
-      wishes.splice(index, 1);
-      saveWishes(wishes);
-      renderWishes();
-    }
-
-    // Инициализация
-    renderWishes();
+    loadWishlist();
   </script>
 </body>
 </html>
